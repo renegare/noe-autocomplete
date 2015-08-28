@@ -1,0 +1,11 @@
+{
+  "name": "noe-autocomplete",
+  "version": "0.0.1",
+  "description": "simple autocomplete ui component",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "testem -f testem.yml"
+  },
+  "author": "mrmoo <mudi@renegare.com>",
+  "license": "MIT"
+}
