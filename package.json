@@ -9,6 +9,7 @@
   "author": "mrmoo <mudi@renegare.com>",
   "license": "MIT",
   "devDependencies": {
+    "expose-loader": "^0.7.0",
     "glob": "^5.0.14",
     "gulp": "^3.9.0",
     "gulp-help": "^1.6.1",

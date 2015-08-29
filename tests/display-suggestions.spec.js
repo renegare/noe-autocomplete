@@ -13,6 +13,7 @@ describe('suggestions', function() {
                     '<div>',
                         '<input type="text" />',
                         '<aside></aside>',
+                        '<p></p>',
                     '</div>'
                 ].join(''),{
                     events: {
@@ -22,7 +23,10 @@ describe('suggestions', function() {
                     templates: {
                         suggestion: (function(tmpl) {
                             return tmpl.render.bind(tmpl);
-                        })(hogan.compile('<li data-id="{{id}}">{{name}}</li>'))
+                        })(hogan.compile('<div data-id="{{id}}">{{name}}</div>')),
+                        hint: function(suggestion) {
+                            return suggestion.name;
+                        }
                     }
                 }
             );
@@ -51,8 +55,27 @@ describe('suggestions', function() {
             });
 
             it('should populate list of suggestions', function() {
-                expect(this.component.select('suggestionsSelector')).toHaveClass('active');
-                expect(this.component.select('suggestionsSelector').find('> *')).toHaveLength(3);
+                expect(this.component.select('listSelector')).toHaveClass('active');
+                expect(this.component.select('suggestionsSelector')).toHaveLength(3);
+            });
+
+            it('should display hint', function() {
+                expect(this.component.select('hintSelector')).toContainText('mudi was here');
+            });
+
+            describe('on [ESC]', function() {
+                beforeEach(function() {
+                    this.component.select('inputSelector').trigger($.Event('keyup', { keyCode: 27 }));
+                });
+
+                it('should hide deactivate suggestions', function() {
+                    expect(this.component.select('listSelector')).not.toHaveClass('active');
+                    expect(this.component.select('suggestionsSelector')).toHaveLength(0);
+                });
+
+                it('should clear hint', function() {
+                    expect(this.component.select('hintSelector')).toBeEmpty();
+                });
             });
         });
     });
