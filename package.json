@@ -9,6 +9,7 @@
   "author": "mrmoo <mudi@renegare.com>",
   "license": "MIT",
   "devDependencies": {
+    "es5-shim": "^4.1.11",
     "expose-loader": "^0.7.0",
     "glob": "^5.0.14",
     "gulp": "^3.9.0",
@@ -16,6 +17,7 @@
     "gulp-util": "^3.0.6",
     "hogan.js": "^3.0.2",
     "loader-utils": "^0.2.11",
+    "lodash": "^3.10.1",
     "mustache-loader": "^0.3.0",
     "webpack": "^1.12.0"
   }

@@ -1,6 +1,7 @@
 framework: jasmine2
 
 serve_files:
+    - bower/es5-shim/es5-shim.js
     - bower/jquery/dist/jquery.js
     - bower/jasmine-jquery/lib/jasmine-jquery.js
     - tmp/**/*.spec.bundle.js
