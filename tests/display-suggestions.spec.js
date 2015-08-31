@@ -1,13 +1,13 @@
 describe('suggestions', function() {
     var hogan = require('hogan.js'),
-        _ = require('lodash')
+        _ = require('lodash'),
+        Promise = require('bluebird')
         ;
 
     describeComponent(require('noe-autocomplete'), function() {
         var query = 'mudi'
             ;
         beforeEach(function() {
-            spyOnEvent(document, 'uiGetSuggestions');
 
             this.setupComponent(
                 [
@@ -34,7 +34,11 @@ describe('suggestions', function() {
         });
 
         describe('on keydown', function() {
+            var event
+                ;
             beforeEach(function() {
+                event = spyOnEvent(document, 'uiGetSuggestions');
+
                 this.component.select('inputSelector')
                     .val(query)
                     .trigger('keydown')
@@ -42,7 +46,7 @@ describe('suggestions', function() {
             });
 
             it('should trigger uiGetSuggestions', function() {
-                expect('uiGetSuggestions').toHaveBeenTriggeredOnAndWith(document, query);
+                expect('uiGetSuggestions').toHaveBeenTriggeredOnAndWith(document, [query]);
             });
         });
 
@@ -67,7 +71,7 @@ describe('suggestions', function() {
                 expect(this.component.select('hintSelector')).toContainText('mudi was here');
             });
 
-            describe('arrow down key (40)', function() {
+            describe('ARROW DOWN - keyCode 40', function() {
                 var that;
 
                 beforeEach(function() {
@@ -82,11 +86,21 @@ describe('suggestions', function() {
                     that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 40}));
                 }
 
-                suggestions.forEach(function(suggestion, n) {
-                    it('should move to the next (' + n + ') suggestion', function() {
-                        _.range(n+1).forEach(triggerArrowDownKey)
-                        expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
-                    });
+                it('should move to the next suggestions', function(done) {
+                    suggestions.reduce(function(after, suggestion) {
+                        return after.then(function() {
+                            return new Promise(function(resolve) {
+                                triggerArrowDownKey();
+                                setTimeout(function() {
+                                    expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
+                                    resolve();
+                                });
+                            });
+                        });
+                    }, new Promise(function(resolve) { resolve() }))
+                    .then(done)
+                    .catch(done)
+                    ;
                 });
 
                 it('should move to the original input value when no more next', function() {
@@ -95,12 +109,9 @@ describe('suggestions', function() {
                 });
             });
 
-            describe('arrow up key (38)', function() {
-                var that,
-                    rSuggestions = _.clone(suggestions)
+            describe('ARROW UP - keyCode 38', function() {
+                var that
                     ;
-
-                rSuggestions.reverse();
 
                 beforeEach(function() {
                     that = this;
@@ -114,20 +125,39 @@ describe('suggestions', function() {
                     that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 38}));
                 }
 
-                rSuggestions.forEach(function(suggestion, n) {
-                    it('should move to the previous (' + n + ') suggestion', function() {
-                        _.range(n+1).forEach(triggerArrowUpKey)
-                        expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
-                    });
+                it('should move to the previous suggestions', function(done) {
+
+                    rSuggestions = _.clone(suggestions);
+                    rSuggestions.reverse();
+
+                    rSuggestions.reduce(function(after, suggestion) {
+                        return after.then(function() {
+                            return new Promise(function(resolve) {
+                                triggerArrowUpKey();
+                                setTimeout(function() {
+                                    expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
+                                    resolve();
+                                });
+                            });
+                        });
+                    }, new Promise(function(resolve) { resolve() }))
+                    .then(done)
+                    .catch(done)
+                    ;
                 });
 
-                it('should move to the original input value when no more previous', function() {
-                    _.range(suggestions.length+1).forEach(triggerArrowUpKey);
-                    expect(that.component.select('inputSelector')).toHaveValue(query);
+                describe('no more previous', function() {
+                    beforeEach(function() {
+                        _.range(suggestions.length+1).forEach(triggerArrowUpKey);
+                    });
+
+                    it('should move to the original input value when no more previous', function() {
+                        expect(that.component.select('inputSelector')).toHaveValue(query);
+                    });
                 });
             });
 
-            describe('on [ESC]', function() {
+            describe('[ESC] (keyCode 27)', function() {
                 beforeEach(function() {
                     this.component.select('inputSelector').trigger($.Event('keyup', { keyCode: 27 }));
                 });
