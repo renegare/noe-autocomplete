@@ -4,11 +4,16 @@ describe('suggestions', function() {
         Promise = require('bluebird')
         ;
 
-    describeComponent(require('noe-autocomplete'), function() {
-        var query = 'mudi'
+    describeComponent(require('lib'), function() {
+        var query = 'mudi',
+            suggestions = [
+                {id: 1, name: 'mudi was here'},
+                    {id: 1, name: 'mudi is here'},
+                        {id: 1, name: 'mudi will be here'}
+            ]
             ;
-        beforeEach(function() {
 
+        beforeEach(function() {
             this.setupComponent(
                 [
                     '<div>',
@@ -22,22 +27,21 @@ describe('suggestions', function() {
                             dataSuggestions: 'dataSuggestions'
                     },
                     templates: {
-                        suggestion: (function(tmpl) {
-                            return tmpl.render.bind(tmpl);
-                        })(hogan.compile('<div data-id="{{suggestion.id}}" data-label="{{suggestion.name}}">{{suggestion.name}}</div>')),
-                        hint: function(suggestion) {
-                            return suggestion.name;
-                        }
+                        suggestions: (function(tmpl) {
+                                return tmpl.render.bind(tmpl);
+                            })(hogan.compile([
+                                '{{#suggestions}}',
+                                    '<div data-id="{{id}}" data-label="{{name}}">{{name}}</div>',
+                                '{{/suggestions}}'].join(''))),
+                        hint: function(suggestion) { return suggestion.name; }
                     }
                 }
             );
         });
 
         describe('on keydown', function() {
-            var event
-                ;
             beforeEach(function() {
-                event = spyOnEvent(document, 'uiGetSuggestions');
+                spyOnEvent(document, 'uiGetSuggestions');
 
                 this.component.select('inputSelector')
                     .val(query)
@@ -51,12 +55,6 @@ describe('suggestions', function() {
         });
 
         describe('on dataSuggestions', function() {
-            var suggestions = [
-                    {id: 1, name: 'mudi was here'},
-                        {id: 1, name: 'mudi is here'},
-                            {id: 1, name: 'mudi will be here'}
-                ]
-                ;
 
             beforeEach(function() {
                 this.component.trigger('dataSuggestions', [suggestions]);
@@ -68,93 +66,7 @@ describe('suggestions', function() {
             });
 
             it('should display hint', function() {
-                expect(this.component.select('hintSelector')).toContainText('mudi was here');
-            });
-
-            describe('ARROW DOWN - keyCode 40', function() {
-                var that;
-
-                beforeEach(function() {
-                    that = this;
-
-                    this.component.select('inputSelector')
-                        .val(query)
-                        .trigger('keydown')
-                });
-
-                function triggerArrowDownKey() {
-                    that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 40}));
-                }
-
-                it('should move to the next suggestions', function(done) {
-                    suggestions.reduce(function(after, suggestion) {
-                        return after.then(function() {
-                            return new Promise(function(resolve) {
-                                triggerArrowDownKey();
-                                setTimeout(function() {
-                                    expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
-                                    resolve();
-                                });
-                            });
-                        });
-                    }, new Promise(function(resolve) { resolve() }))
-                    .then(done)
-                    .catch(done)
-                    ;
-                });
-
-                it('should move to the original input value when no more next', function() {
-                    _.range(suggestions.length+1).forEach(triggerArrowDownKey);
-                    expect(that.component.select('inputSelector')).toHaveValue(query);
-                });
-            });
-
-            describe('ARROW UP - keyCode 38', function() {
-                var that
-                    ;
-
-                beforeEach(function() {
-                    that = this;
-
-                    this.component.select('inputSelector')
-                        .val(query)
-                        .trigger('keydown')
-                });
-
-                function triggerArrowUpKey() {
-                    that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 38}));
-                }
-
-                it('should move to the previous suggestions', function(done) {
-
-                    rSuggestions = _.clone(suggestions);
-                    rSuggestions.reverse();
-
-                    rSuggestions.reduce(function(after, suggestion) {
-                        return after.then(function() {
-                            return new Promise(function(resolve) {
-                                triggerArrowUpKey();
-                                setTimeout(function() {
-                                    expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
-                                    resolve();
-                                });
-                            });
-                        });
-                    }, new Promise(function(resolve) { resolve() }))
-                    .then(done)
-                    .catch(done)
-                    ;
-                });
-
-                describe('no more previous', function() {
-                    beforeEach(function() {
-                        _.range(suggestions.length+1).forEach(triggerArrowUpKey);
-                    });
-
-                    it('should move to the original input value when no more previous', function() {
-                        expect(that.component.select('inputSelector')).toHaveValue(query);
-                    });
-                });
+                expect(this.component.select('hintSelector')).toContainText(suggestions[0].name);
             });
 
             describe('[ESC] (keyCode 27)', function() {
@@ -170,6 +82,100 @@ describe('suggestions', function() {
                 it('should clear hint', function() {
                     expect(this.component.select('hintSelector')).toBeEmpty();
                 });
+            });
+        });
+
+        describe('[ARROW UP] (keyCode 38)', function() {
+            var that
+                ;
+
+            beforeEach(function() {
+                that = this;
+
+                this.component.select('inputSelector')
+                    .val(query)
+                    .trigger('keydown');
+
+                this.component.trigger('dataSuggestions', [suggestions]);
+            });
+
+            function triggerArrowUpKey() {
+                that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 38}));
+            }
+
+            it('should move to the previous suggestions', function(done) {
+                (function(suggestions) {
+                    suggestions.reverse();
+                    return suggestions;
+                })(_.clone(suggestions))
+                    .reduce(function(after, suggestion) {
+                        return after.then(function() {
+                            return new Promise(function(resolve) {
+                                triggerArrowUpKey();
+                                setTimeout(function() {
+                                    expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
+                                    expect(that.component.select('hintSelector')).toBeEmpty();
+                                    resolve();
+                                });
+                            });
+                        });
+                    }, new Promise(function(resolve) { resolve() }))
+                    .then(done)
+                    .catch(done)
+                    ;
+            });
+
+            describe('no more previous', function() {
+                beforeEach(function() {
+                    _.range(suggestions.length+1).forEach(triggerArrowUpKey);
+                });
+
+                it('should move to the original input value when no more previous', function() {
+                    expect(that.component.select('inputSelector')).toHaveValue(query);
+                    expect(that.component.select('hintSelector')).toContainText(suggestions[0].name);
+                });
+            });
+        });
+
+        describe('[ARROW DOWN] (keyCode 40)', function() {
+            var that;
+
+            beforeEach(function() {
+                that = this;
+
+                this.component.select('inputSelector')
+                    .val(query)
+                    .trigger('keydown');
+
+                this.component.trigger('dataSuggestions', [suggestions]);
+            });
+
+            function triggerArrowDownKey() {
+                that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 40}));
+            }
+
+            it('should move to the next suggestions', function(done) {
+                suggestions.reduce(function(after, suggestion) {
+                    return after.then(function() {
+                        return new Promise(function(resolve) {
+                            triggerArrowDownKey();
+                            setTimeout(function() {
+                                expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
+                                expect(that.component.select('hintSelector')).toBeEmpty();
+                                resolve();
+                            });
+                        });
+                    });
+                }, new Promise(function(resolve) { resolve() }))
+                .then(done)
+                .catch(done)
+                ;
+            });
+
+            it('should move to the original input value when no more next', function() {
+                _.range(suggestions.length+1).forEach(triggerArrowDownKey);
+                expect(that.component.select('inputSelector')).toHaveValue(query);
+                expect(that.component.select('hintSelector')).toContainText(suggestions[0].name);
             });
         });
     });
