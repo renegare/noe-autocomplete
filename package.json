@@ -4,6 +4,7 @@
   "description": "simple autocomplete ui component",
   "main": "src/index.js",
   "scripts": {
+    "install": "bower i",
     "test": "testem -f testem.yml"
   },
   "author": "mrmoo <mudi@renegare.com>",

@@ -71,7 +71,7 @@ gulp.task('webpack:test', function(done) {
         ],
 
         entry: [
-            'webpack-jasmine-flight'
+            'tests/jasmine-flight'
         ].concat(glob.sync('tests/**/*.spec.js')),
 
         output: {
