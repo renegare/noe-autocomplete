@@ -45,7 +45,7 @@ describeComponent(require('lib'), function() {
 
             this.component.select('inputSelector')
                 .val(query)
-                .trigger('keydown')
+                .trigger('keyup')
                 ;
         });
 
@@ -94,7 +94,7 @@ describeComponent(require('lib'), function() {
 
             this.component.select('inputSelector')
                 .val(query)
-                .trigger('keydown');
+                .trigger('keyup');
         });
 
         beforeEach(function() {
@@ -147,7 +147,7 @@ describeComponent(require('lib'), function() {
 
             this.component.select('inputSelector')
                 .val(query)
-                .trigger('keydown');
+                .trigger('keyup');
         });
 
         beforeEach(function() {

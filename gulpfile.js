@@ -26,7 +26,7 @@ gulp.task('webpack:dist', function(done) {
                 new webpack.ResolverPlugin(
                     new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin("bower.json", ["main"])
                 ),
-                    new webpack.optimize.UglifyJsPlugin({minimize: true})
+                    // new webpack.optimize.UglifyJsPlugin({minimize: true})
         ],
 
         entry: 'lib/index.js',
