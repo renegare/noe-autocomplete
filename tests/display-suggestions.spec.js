@@ -1,17 +1,18 @@
 
     var hogan = require('hogan.js'),
         _ = require('lodash'),
-        Promise = require('bluebird')
+        Promise = require('bluebird'),
+        faker = require('faker')
         ;
 
-describeComponent(require('lib'), function() {
-    var query = 'mudi',
-        suggestions = [
-            {id: 1, name: 'mudi was here'},
-                {id: 1, name: 'mudi is here'},
-                    {id: 1, name: 'mudi will be here'}
-        ]
-        ;
+    describeComponent(require('lib'), function() {
+        var query = faker.lorem.words(faker.random.number({min: 1, max: 3})).join(' '),
+            suggestions = [
+                {id: 1, name: query + ' was here'},
+                    {id: 1, name: query + ' is here'},
+                        {id: 1, name: query + ' will be here'}
+            ]
+            ;
 
     beforeEach(function() {
         this.setupComponent(
@@ -135,6 +136,26 @@ describeComponent(require('lib'), function() {
             it('should move to the original input value when no more previous', function() {
                 expect(that.component.select('inputSelector')).toHaveValue(query);
                 expect(that.component.select('hintSelector')).toContainText(suggestions[0].name);
+            });
+        });
+
+        describe('[ENTER] (keyCode XX)', function() {
+            beforeEach(function() {
+                that = this;
+                this.component.select('inputSelector')
+                    .val(query)
+                    .trigger('keydown');
+
+                this.component.trigger('dataSuggestions', [suggestions]);
+            });
+
+            describe('when no suggestion is selected', function() {
+                it('should not prevent default behaviour');
+            });
+
+            describe('when suggestion is selected', function() {
+                it('should prevent default behaviour');
+                it('should trigger uiSelectedSuggestion');
             });
         });
     });

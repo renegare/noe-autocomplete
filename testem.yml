@@ -1,4 +1,5 @@
-framework: jasmine2
+# framework: jasmine2
+test_page: tests/runner.mustache
 
 serve_files:
     - bower/es5-shim/es5-shim.js

@@ -18,6 +18,7 @@
     "bluebird": "~2.9.34",
     "es5-shim": "~4.1.11",
     "flight": "~1.5.0",
+    "jasmine-core": "jasmine#~2.3.4",
     "jasmine-jquery": "~2.1.0",
     "jquery": "~2.1.4",
     "typeahead.js": "~0.11.1"
