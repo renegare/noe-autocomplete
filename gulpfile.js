@@ -16,7 +16,7 @@ gulp.task('webpack:dist', function(done) {
             alias: {
                 'noe-autocomplete': 'lib'
             },
-            modulesDirectories: ['node_modules', 'bower']
+            modulesDirectories: ['node_modules', 'public/bower']
         },
 
         plugins: [
@@ -32,7 +32,7 @@ gulp.task('webpack:dist', function(done) {
         entry: 'lib/index.js',
 
         output: {
-            path: path.resolve(__dirname, 'dist'),
+            path: path.resolve(__dirname, 'public', 'dist'),
             filename: "noe-autocomplete.bundle.js",
             library: 'NoeAutocomplete'
         },
@@ -58,7 +58,7 @@ gulp.task('webpack:test', function(done) {
             alias: {
                 'noe-autocomplete': 'lib'
             },
-            modulesDirectories: ['node_modules', 'bower']
+            modulesDirectories: ['node_modules', 'public/bower']
         },
 
         plugins: [
