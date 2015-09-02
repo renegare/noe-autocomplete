@@ -1,8 +1,8 @@
-# framework: jasmine2
-test_page: tests/runner.mustache
+framework: jasmine2
+# test_page: tests/runner.mustache
 
 serve_files:
-    - bower/es5-shim/es5-shim.js
-    - bower/jquery/dist/jquery.js
-    - bower/jasmine-jquery/lib/jasmine-jquery.js
+    - public/bower/es5-shim/es5-shim.js
+    - public/bower/jquery/dist/jquery.js
+    - public/bower/jasmine-jquery/lib/jasmine-jquery.js
     - tmp/**/*.spec.bundle.js

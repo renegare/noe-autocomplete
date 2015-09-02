@@ -45,8 +45,8 @@
             spyOnEvent(document, 'uiGetSuggestions');
 
             this.component.select('inputSelector')
+                .trigger('keydown')
                 .val(query)
-                .trigger('keyup')
                 ;
         });
 
@@ -55,7 +55,7 @@
         });
     });
 
-    describe('on dataSuggestions', function() {
+    xdescribe('on dataSuggestions', function() {
 
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
@@ -86,7 +86,7 @@
         });
     });
 
-    describe('[ARROW UP] (keyCode 38)', function() {
+    xdescribe('[ARROW UP] (keyCode 38)', function() {
         var that
             ;
 
@@ -160,7 +160,7 @@
         });
     });
 
-    describe('[ARROW DOWN] (keyCode 40)', function() {
+    xdescribe('[ARROW DOWN] (keyCode 40)', function() {
         var that;
 
         beforeEach(function() {
@@ -204,3 +204,5 @@
         });
     });
 });
+
+// [38,40].indexOf(e.keyCode) === -1 &&
