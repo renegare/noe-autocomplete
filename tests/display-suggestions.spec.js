@@ -23,6 +23,7 @@
                     '<p></p>',
                 '</div>'
             ].join(''),{
+                minLength: 3,
                 events: {
                     uiGetSuggestions: 'uiGetSuggestions',
                         dataSuggestions: 'dataSuggestions'
@@ -31,31 +32,60 @@
                     suggestions: (function(tmpl) {
                             return tmpl.render.bind(tmpl);
                         })(hogan.compile([
+                            '<ul>',
                             '{{#suggestions}}',
-                                '<div data-id="{{id}}" data-label="{{name}}">{{name}}</div>',
-                            '{{/suggestions}}'].join(''))),
+                                '<li data-id="{{id}}" data-label="{{name}}">{{name}}</li>',
+                            '{{/suggestions}}',
+                            '</ul>'].join(''))),
                     hint: function(suggestion) { return suggestion.name; }
                 }
             }
         );
     });
 
-    describe('on keydown', function() {
-        beforeEach(function() {
-            spyOnEvent(document, 'uiGetSuggestions');
+    describe('on keyup event', function() {
+        var uiGetSuggestionsEventSpy
+            ;
 
-            this.component.select('inputSelector')
-                .trigger('keydown')
-                .val(query)
-                ;
+        beforeEach(function() {
+            uiGetSuggestionsEventSpy = spyOnEvent(this.$node, 'uiGetSuggestions');
         });
 
-        it('should trigger uiGetSuggestions', function() {
-            expect('uiGetSuggestions').toHaveBeenTriggeredOnAndWith(document, [query]);
+        afterEach(function() {
+            uiGetSuggestionsEventSpy.reset();
+        });
+
+        describe('valid length', function() {
+            beforeEach(function() {
+                this.component.select('inputSelector')
+                    .val(query)
+                    .trigger('keyup')
+                    ;
+            });
+
+            it('should trigger uiGetSuggestions', function(done) {
+                setTimeout(function() {
+                    expect('uiGetSuggestions').toHaveBeenTriggeredOnAndWith(this.$node, [query]);
+                    done();
+                })
+            });
+        });
+
+        describe('minLength', function() {
+            beforeEach(function() {
+                this.component.select('inputSelector')
+                    .val(query.substr(0,2))
+                    .trigger('keyup')
+                    ;
+            });
+
+            it('should not trigger uiGetSuggestions', function() {
+                expect('uiGetSuggestions').not.toHaveBeenTriggeredOn(this.$node);
+            });
         });
     });
 
-    xdescribe('on dataSuggestions', function() {
+    describe('on dataSuggestions event', function() {
 
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
@@ -86,7 +116,31 @@
         });
     });
 
-    xdescribe('[ARROW UP] (keyCode 38)', function() {
+    describe('when user deletes text', function() {
+        beforeEach(function() {
+            this.component.trigger('dataSuggestions', [suggestions]);
+
+            this.component.select('inputSelector')
+                .val(query.substr(0,2))
+                .trigger('keyup')
+                ;
+        });
+
+        it('should hide deactivate suggestions', function() {
+            expect(this.component.select('listSelector')).not.toHaveClass('active');
+            expect(this.component.select('suggestionsSelector')).toHaveLength(0);
+        });
+
+        it('should clear hint', function() {
+            expect(this.component.select('hintSelector')).toBeEmpty();
+        });
+
+        it('should clear hint', function() {
+            expect('uiGetSuggestions').not.toHaveBeenTriggeredOn(this.$node);
+        });
+    });
+
+    describe('[ARROW UP] (keyCode 38)', function() {
         var that
             ;
 
@@ -160,7 +214,7 @@
         });
     });
 
-    xdescribe('[ARROW DOWN] (keyCode 40)', function() {
+    describe('[ARROW DOWN] (keyCode 40)', function() {
         var that;
 
         beforeEach(function() {
@@ -204,5 +258,3 @@
         });
     });
 });
-
-// [38,40].indexOf(e.keyCode) === -1 &&
