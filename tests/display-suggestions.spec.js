@@ -53,8 +53,8 @@ describeComponent(require('lib'), function() {
         describe('valid length', function() {
             beforeEach(function() {
                 this.component.select('inputSelector')
+                    .trigger('keydown')
                     .val(query)
-                    .trigger('keyup')
                     ;
             });
 
@@ -62,15 +62,15 @@ describeComponent(require('lib'), function() {
                 setTimeout(function() {
                     expect('uiGetSuggestions').toHaveBeenTriggeredOnAndWith(this.$node, [query]);
                     done();
-                })
+                }.bind(this), 100)
             });
         });
 
         describe('minLength', function() {
             beforeEach(function() {
                 this.component.select('inputSelector')
+                    .trigger('keydown')
                     .val(query.substr(0,2))
-                    .trigger('keyup')
                     ;
             });
 
@@ -82,17 +82,16 @@ describeComponent(require('lib'), function() {
 
     describe('on dataSuggestions event', function() {
 
-        beforeEach(function() {
-            this.component.trigger('dataSuggestions', [suggestions]);
+        beforeEach(function(done) {
+            setTimeout(function() {
+                this.component.trigger('dataSuggestions', [suggestions]);
+                done();
+            }.bind(this), 100)
         });
 
         it('should populate list of suggestions', function() {
             expect(this.component.select('listSelector')).toHaveClass('active');
             expect(this.component.select('suggestionsSelector')).toHaveLength(suggestions.length);
-        });
-
-        it('should display hint', function() {
-            expect(this.component.select('hintSelector')).toContainText(suggestions[0].name);
         });
 
         describe('[ESC] (keyCode 27)', function() {
@@ -103,10 +102,6 @@ describeComponent(require('lib'), function() {
             it('should hide deactivate suggestions', function() {
                 expect(this.component.select('listSelector')).not.toHaveClass('active');
                 expect(this.component.select('suggestionsSelector')).toHaveLength(0);
-            });
-
-            it('should clear hint', function() {
-                expect(this.component.select('hintSelector')).toBeEmpty();
             });
         });
     });
