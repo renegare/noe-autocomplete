@@ -6,7 +6,7 @@
         ;
 
     describeComponent(require('lib'), function() {
-        var query = faker.lorem.words(faker.random.number({min: 1, max: 3})).join(' '),
+        var query = faker.lorem.words(faker.random.number({min: 1, max: 1})).join(' '),
             suggestions = [
                 {id: 1, name: query + ' was here'},
                     {id: 1, name: query + ' is here'},
@@ -255,6 +255,22 @@
             _.range(suggestions.length+1).forEach(triggerArrowDownKey);
             expect(that.component.select('inputSelector')).toHaveValue(query);
             expect(that.component.select('hintSelector')).toContainText(suggestions[0].name);
+        });
+    });
+
+    describe('hints', function() {
+        beforeEach(function() {
+            this.component.select('inputSelector')
+                .val(query + ' is')
+                .trigger('keyup');
+        });
+
+        beforeEach(function() {
+            this.component.trigger('dataSuggestions', [suggestions]);
+        });
+
+        it('should display hint', function() {
+            expect(this.component.select('hintSelector')).toContainText(suggestions[1].name);
         });
     });
 });
