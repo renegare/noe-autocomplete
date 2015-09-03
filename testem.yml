@@ -5,4 +5,8 @@ serve_files:
     - public/bower/es5-shim/es5-shim.js
     - public/bower/jquery/dist/jquery.js
     - public/bower/jasmine-jquery/lib/jasmine-jquery.js
+    - public/bower/hogan.js/web/builds/3.0.2/hogan-3.0.2.js
+    - public/bower/bluebird/js/browser/bluebird.js
+    - public/bower/lodash/lodash.js
+    - node_modules/faker/build/build/faker.js
     - tmp/**/*.spec.bundle.js

@@ -1,18 +1,13 @@
 
-    var hogan = require('hogan.js'),
-        _ = require('lodash'),
-        Promise = require('bluebird'),
-        faker = require('faker')
-        ;
 
-    describeComponent(require('lib'), function() {
-        var query = faker.lorem.words(faker.random.number({min: 1, max: 1})).join(' '),
-            suggestions = [
-                {id: 1, name: query + ' was here'},
-                    {id: 1, name: query + ' is here'},
-                        {id: 1, name: query + ' will be here'}
-            ]
-            ;
+describeComponent(require('lib'), function() {
+    var query = faker.lorem.words(faker.random.number({min: 1, max: 1})).join(' '),
+        suggestions = [
+            {id: 1, name: query + ' was here'},
+                {id: 1, name: query + ' is here'},
+                    {id: 1, name: query + ' will be here'}
+        ]
+        ;
 
     beforeEach(function() {
         this.setupComponent(
@@ -31,13 +26,13 @@
                 templates: {
                     suggestions: (function(tmpl) {
                             return tmpl.render.bind(tmpl);
-                        })(hogan.compile([
+                        })(Hogan.compile([
                             '<ul>',
                             '{{#suggestions}}',
                                 '<li data-id="{{id}}" data-label="{{name}}">{{name}}</li>',
                             '{{/suggestions}}',
                             '</ul>'].join(''))),
-                    hint: function(suggestion) { return suggestion.name; }
+                    hint: function(view) { return view.hint; }
                 }
             }
         );
@@ -259,9 +254,18 @@
     });
 
     describe('hints', function() {
+        var customFormatQuery
+            ;
+
         beforeEach(function() {
+            customFormatQuery = query.split('')
+                .map(function(char) {
+                    return char[Math.random() >= 0.5? 'toUpperCase' : 'toLowerCase']();
+                })
+                .join('') + ' iS';
+
             this.component.select('inputSelector')
-                .val(query + ' is')
+                .val(customFormatQuery)
                 .trigger('keyup');
         });
 
@@ -270,7 +274,12 @@
         });
 
         it('should display hint', function() {
-            expect(this.component.select('hintSelector')).toContainText(suggestions[1].name);
+            var expectedHint = customFormatQuery + suggestions[1].name.substr(customFormatQuery.length)
+                ;
+            console.log(this.component.select('hintSelector').text())
+            console.log(suggestions[1].name.substr(customFormatQuery.length))
+            console.log(expectedHint);
+            expect(this.component.select('hintSelector')).toContainText(expectedHint);
         });
     });
 });
