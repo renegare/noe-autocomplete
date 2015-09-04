@@ -1,8 +1,10 @@
-
+'use strict';
 
 describeComponent(require('lib'), function() {
     var query = faker.lorem.words(faker.random.number({min: 1, max: 1})).join(' '),
         uiGetSuggestionsEventSpy,
+        uiMatchedSuggestionSpy,
+        uiSelectedSuggestionSpy,
         suggestions = [
             {id: 1, name: query + ' was here'},
                 {id: 1, name: query + ' is here'},
@@ -16,7 +18,7 @@ describeComponent(require('lib'), function() {
                 .trigger('keydown')
                 .val(query)
                 ;
-            setTimeout(done, 20);
+            setTimeout(done, 50);
         };
     };
 
@@ -25,8 +27,8 @@ describeComponent(require('lib'), function() {
             [
                 '<div>',
                     '<input type="text" />',
+                    '<small></small>',
                     '<aside></aside>',
-                    '<p></p>',
                 '</div>'
             ].join(''),{
                 templates: {
@@ -46,12 +48,14 @@ describeComponent(require('lib'), function() {
 
     beforeEach(function() {
         uiGetSuggestionsEventSpy = spyOnEvent(this.$node, 'uiGetSuggestions');
-        uiSelectedSuggestion = spyOnEvent(this.$node, 'uiSelectedSuggestion');
+        uiSelectedSuggestionSpy = spyOnEvent(this.$node, 'uiSelectedSuggestion');
+        uiMatchedSuggestionSpy = spyOnEvent(this.$node, 'uiMatchedSuggestion');
     });
 
     afterEach(function() {
         uiGetSuggestionsEventSpy.reset();
-        uiSelectedSuggestion.reset();
+        uiSelectedSuggestionSpy.reset();
+        uiMatchedSuggestionSpy.reset();
     });
 
     describe('on keyup event', function() {
@@ -268,10 +272,9 @@ describeComponent(require('lib'), function() {
         beforeEach(function() {
             $input = this.component.select('inputSelector');
             spyEvent = spyOnEvent($input, 'keydown');
-            this.component.trigger('dataSuggestions', [suggestions]);
         });
 
-        describe('when no suggestion is selected', function() {
+        describe('has no suggestions', function() {
             beforeEach(function() {
                 $input.trigger($.Event('keydown', {keyCode: 13}));
             });
@@ -282,25 +285,83 @@ describeComponent(require('lib'), function() {
             });
         });
 
-        describe('when suggestion is selected', function() {
+        describe('has suggestions', function() {
             beforeEach(function() {
-                $input.trigger($.Event('keyup', {keyCode: 40}));
+                this.component.trigger('dataSuggestions', [suggestions]);
             });
 
-            beforeEach(function() {
-                expect($input).toHaveValue(suggestions[0].name);
-                $input.trigger($.Event('keydown', {keyCode: 13}));
+            describe('non selected', function() {
+                beforeEach(function() {
+                    $input.trigger($.Event('keydown', {keyCode: 13}));
+                });
+
+                it('should not prevent default behaviour and event bubbling', function() {
+                    expect('keydown').not.toHaveBeenStoppedOn($input);
+                    expect('keydown').not.toHaveBeenPreventedOn($input);
+                });
             });
 
-            it('should prevent default behaviour', function() {
-                expect('keydown').toHaveBeenStoppedOn($input);
-                expect('keydown').toHaveBeenPreventedOn($input);
+            describe('non selected but matches a suggestion', function() {
+                beforeEach(setInputValue(suggestions[0].name));
+
+                beforeEach(function() {
+                    $input.trigger($.Event('keydown', {keyCode: 13}));
+                });
+
+                it('should prevent default behaviour', function() {
+                    expect('keydown').toHaveBeenStoppedOn($input);
+                    expect('keydown').toHaveBeenPreventedOn($input);
+                });
+
+                it('should trigger uiMatchedSuggestion', function() {
+                    expect('uiMatchedSuggestion').toHaveBeenTriggeredOnAndWith(this.$node, [suggestions[0]]);
+                });
             });
 
-            it('should trigger uiSelectedSuggestion', function() {
-                expect('uiSelectedSuggestion').toHaveBeenTriggeredOnAndWith(this.$node, [suggestions[0]]);
+            describe('selected', function() {
+                beforeEach(function() { // select first section
+                    $input.trigger($.Event('keyup', {keyCode: 40}));
+                });
+
+                beforeEach(function() {
+                    expect($input).toHaveValue(suggestions[0].name);
+                    $input.trigger($.Event('keydown', {keyCode: 13}));
+                });
+
+                it('should prevent default behaviour', function() {
+                    expect('keydown').toHaveBeenStoppedOn($input);
+                    expect('keydown').toHaveBeenPreventedOn($input);
+                });
+
+                it('should trigger uiSelectedSuggestion', function() {
+                    expect('uiSelectedSuggestion').toHaveBeenTriggeredOnAndWith(this.$node, [suggestions[0]]);
+                });
+            });
+
+            describe('selected and then unselected', function() {
+                beforeEach(function() { // select first section
+                    $input.trigger($.Event('keyup', {keyCode: 40}));
+                });
+
+                beforeEach(function() { // unselect
+                    expect($input).toHaveValue(suggestions[0].name);
+                    $input.trigger($.Event('keyup', {keyCode: 38}));
+                });
+
+                beforeEach(function() {
+                    expect($input).toHaveValue(query);
+                    $input.trigger($.Event('keydown', {keyCode: 13}));
+                });
+
+                it('should prevent default behaviour', function() {
+                    expect('keydown').not.toHaveBeenStoppedOn($input);
+                    expect('keydown').not.toHaveBeenPreventedOn($input);
+                });
+
+                it('should not trigger uiSelectedSuggestion', function() {
+                    expect('uiSelectedSuggestion').not.toHaveBeenTriggeredOn(this.$node);
+                });
             });
         });
     });
-
 });
