@@ -15,7 +15,7 @@ describeComponent(require('lib'), function() {
     function setInputValue(query) {
         return function(done) {
             this.component.select('inputSelector')
-                .trigger('keydown')
+                .trigger('keypress')
                 .val(query)
                 ;
             setTimeout(done, 50);
