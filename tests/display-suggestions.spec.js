@@ -2,12 +2,23 @@
 
 describeComponent(require('lib'), function() {
     var query = faker.lorem.words(faker.random.number({min: 1, max: 1})).join(' '),
+        uiGetSuggestionsEventSpy,
         suggestions = [
             {id: 1, name: query + ' was here'},
                 {id: 1, name: query + ' is here'},
                     {id: 1, name: query + ' will be here'}
         ]
         ;
+
+    function setInputValue(query) {
+        return function(done) {
+            this.component.select('inputSelector')
+                .trigger('keydown')
+                .val(query)
+                ;
+            setTimeout(done, 20);
+        };
+    };
 
     beforeEach(function() {
         this.setupComponent(
@@ -38,25 +49,18 @@ describeComponent(require('lib'), function() {
         );
     });
 
+    beforeEach(function() {
+        uiGetSuggestionsEventSpy = spyOnEvent(this.$node, 'uiGetSuggestions');
+    });
+
+    afterEach(function() {
+        uiGetSuggestionsEventSpy.reset();
+    });
+
     describe('on keyup event', function() {
-        var uiGetSuggestionsEventSpy
-            ;
 
-        beforeEach(function() {
-            uiGetSuggestionsEventSpy = spyOnEvent(this.$node, 'uiGetSuggestions');
-        });
-
-        afterEach(function() {
-            uiGetSuggestionsEventSpy.reset();
-        });
-
-        describe('valid length', function() {
-            beforeEach(function() {
-                this.component.select('inputSelector')
-                    .trigger('keydown')
-                    .val(query)
-                    ;
-            });
+        describe('with valid length string', function() {
+            beforeEach(setInputValue(query));
 
             it('should trigger uiGetSuggestions', function(done) {
                 setTimeout(function() {
@@ -67,12 +71,7 @@ describeComponent(require('lib'), function() {
         });
 
         describe('minLength', function() {
-            beforeEach(function() {
-                this.component.select('inputSelector')
-                    .trigger('keydown')
-                    .val(query.substr(0,2))
-                    ;
-            });
+            beforeEach(setInputValue(query.substr(0,2)));
 
             it('should not trigger uiGetSuggestions', function() {
                 expect('uiGetSuggestions').not.toHaveBeenTriggeredOn(this.$node);
@@ -81,17 +80,19 @@ describeComponent(require('lib'), function() {
     });
 
     describe('on dataSuggestions event', function() {
+        beforeEach(setInputValue(query));
 
-        beforeEach(function(done) {
-            setTimeout(function() {
-                this.component.trigger('dataSuggestions', [suggestions]);
-                done();
-            }.bind(this), 100)
+        beforeEach(function() {
+            this.component.trigger('dataSuggestions', [suggestions]);
         });
 
         it('should populate list of suggestions', function() {
             expect(this.component.select('listSelector')).toHaveClass('active');
             expect(this.component.select('suggestionsSelector')).toHaveLength(suggestions.length);
+        });
+
+        it('should display hint', function() {
+            expect(this.component.select('hintSelector')).toContainText(suggestions[0].name);
         });
 
         describe('[ESC] (keyCode 27)', function() {
@@ -109,12 +110,9 @@ describeComponent(require('lib'), function() {
     describe('when user deletes text', function() {
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
-
-            this.component.select('inputSelector')
-                .val(query.substr(0,2))
-                .trigger('keyup')
-                ;
         });
+
+        beforeEach(setInputValue(query.substr(0,2)));
 
         it('should hide deactivate suggestions', function() {
             expect(this.component.select('listSelector')).not.toHaveClass('active');
@@ -125,7 +123,7 @@ describeComponent(require('lib'), function() {
             expect(this.component.select('hintSelector')).toBeEmpty();
         });
 
-        it('should clear hint', function() {
+        it('should not trigger uiGetSuggestions', function() {
             expect('uiGetSuggestions').not.toHaveBeenTriggeredOn(this.$node);
         });
     });
@@ -136,21 +134,19 @@ describeComponent(require('lib'), function() {
 
         beforeEach(function() {
             that = this;
-
-            this.component.select('inputSelector')
-                .val(query)
-                .trigger('keyup');
         });
+
+        beforeEach(setInputValue(query));
 
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
         });
 
         function triggerArrowUpKey() {
-            that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 38}));
+            that.component.select('inputSelector').trigger($.Event('keyup', {keyCode: 38}));
         }
 
-        it('should move to the previous suggestions', function(done) {
+        it('should move to the previous suggestion', function(done) {
             (function(suggestions) {
                 suggestions.reverse();
                 return suggestions;
@@ -160,6 +156,9 @@ describeComponent(require('lib'), function() {
                         return new Promise(function(resolve) {
                             triggerArrowUpKey();
                             setTimeout(function() {
+                                var indx = suggestions.indexOf(suggestion);
+                                expect(that.component.select('suggestionsSelector').eq(indx)).toHaveClass('active');
+                                expect(that.component.select('suggestionsSelector').eq(indx).siblings('.active')).toHaveLength(0);
                                 expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
                                 expect(that.component.select('hintSelector')).toBeEmpty();
                                 resolve();
@@ -180,6 +179,10 @@ describeComponent(require('lib'), function() {
             it('should move to the original input value when no more previous', function() {
                 expect(that.component.select('inputSelector')).toHaveValue(query);
                 expect(that.component.select('hintSelector')).toContainText(suggestions[0].name);
+            });
+
+            it('should not have any suggestion marked as active', function() {
+                expect(that.component.select('suggestionsSelector').filter('.active')).toHaveLength(0);
             });
         });
 
@@ -209,18 +212,16 @@ describeComponent(require('lib'), function() {
 
         beforeEach(function() {
             that = this;
-
-            this.component.select('inputSelector')
-                .val(query)
-                .trigger('keyup');
         });
+
+        beforeEach(setInputValue(query));
 
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
         });
 
         function triggerArrowDownKey() {
-            that.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 40}));
+            that.component.select('inputSelector').trigger($.Event('keyup', {keyCode: 40}));
         }
 
         it('should move to the next suggestions', function(done) {
@@ -229,6 +230,9 @@ describeComponent(require('lib'), function() {
                     return new Promise(function(resolve) {
                         triggerArrowDownKey();
                         setTimeout(function() {
+                            var indx = suggestions.indexOf(suggestion);
+                            expect(that.component.select('suggestionsSelector').eq(indx)).toHaveClass('active');
+                            expect(that.component.select('suggestionsSelector').eq(indx).siblings('.active')).toHaveLength(0);
                             expect(that.component.select('inputSelector')).toHaveValue(suggestion.name);
                             expect(that.component.select('hintSelector')).toBeEmpty();
                             resolve();
@@ -241,39 +245,39 @@ describeComponent(require('lib'), function() {
             ;
         });
 
-        it('should move to the original input value when no more next', function() {
-            _.range(suggestions.length+1).forEach(triggerArrowDownKey);
-            expect(that.component.select('inputSelector')).toHaveValue(query);
-            expect(that.component.select('hintSelector')).toContainText(suggestions[0].name);
+
+        describe('no more previous', function() {
+            beforeEach(function() {
+                _.range(suggestions.length+1).forEach(triggerArrowDownKey);
+            });
+
+            it('should move to the original input value when no more next', function() {
+                expect(that.component.select('inputSelector')).toHaveValue(query);
+                expect(that.component.select('hintSelector')).toContainText(suggestions[0].name);
+            });
+
+            it('should not have any suggestion marked as active', function() {
+                expect(that.component.select('suggestionsSelector').filter('.active')).toHaveLength(0);
+            });
         });
     });
 
     describe('hints', function() {
-        var customFormatQuery
-            ;
-
-        beforeEach(function() {
-            customFormatQuery = query.split('')
+        var mixedCaseQuery = query.split('')
                 .map(function(char) {
                     return char[Math.random() >= 0.5? 'toUpperCase' : 'toLowerCase']();
                 })
-                .join('') + ' iS';
+                .join('') + ' iS',
+            expectedHint = mixedCaseQuery + suggestions[1].name.substr(mixedCaseQuery.length)
+            ;
 
-            this.component.select('inputSelector')
-                .val(customFormatQuery)
-                .trigger('keyup');
-        });
+        beforeEach(setInputValue(mixedCaseQuery));
 
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
         });
 
         it('should display hint', function() {
-            var expectedHint = customFormatQuery + suggestions[1].name.substr(customFormatQuery.length)
-                ;
-            console.log(this.component.select('hintSelector').text())
-            console.log(suggestions[1].name.substr(customFormatQuery.length))
-            console.log(expectedHint);
             expect(this.component.select('hintSelector')).toContainText(expectedHint);
         });
     });
