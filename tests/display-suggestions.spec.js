@@ -9,7 +9,8 @@ describeComponent(require('lib'), function() {
             {id: 1, name: query + ' was here'},
                 {id: 1, name: query + ' is here'},
                     {id: 1, name: query + ' will be here'}
-        ]
+        ],
+        $input
         ;
 
     function setInputValue(query) {
@@ -44,6 +45,8 @@ describeComponent(require('lib'), function() {
                 }
             }
         );
+
+        $input = this.component.select('inputSelector');
     });
 
     beforeEach(function() {
@@ -364,4 +367,32 @@ describeComponent(require('lib'), function() {
             });
         });
     });
+
+    describe('edge cases', function() {
+        describe('deselecting suggestion but hitting enter on matching free text', function() {
+            beforeEach(function() {
+                this.component.trigger('dataSuggestions', [suggestions]);
+            });
+
+            beforeEach(setInputValue(suggestions[0].name));
+
+            beforeEach(function() { // select first section
+                $input.trigger($.Event('keyup', {keyCode: 40}));
+            });
+
+            beforeEach(setInputValue(suggestions[0].name));
+
+            beforeEach(function() {
+                this.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 13}));
+            });
+
+            it('should trigger uiMatchedSuggestion', function() {
+                expect('uiMatchedSuggestion').toHaveBeenTriggeredOnAndWith(this.$node, [suggestions[0]]);
+            });
+
+            it('should not trigger uiSelectedSuggestion', function() {
+                expect('uiSelectedSuggestion').not.toHaveBeenTriggeredOn(this.$node);
+            });
+        });
+    })
 });
