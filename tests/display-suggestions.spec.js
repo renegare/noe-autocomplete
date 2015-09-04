@@ -29,11 +29,6 @@ describeComponent(require('lib'), function() {
                     '<p></p>',
                 '</div>'
             ].join(''),{
-                minLength: 3,
-                events: {
-                    uiGetSuggestions: 'uiGetSuggestions',
-                        dataSuggestions: 'dataSuggestions'
-                },
                 templates: {
                     suggestions: (function(tmpl) {
                             return tmpl.render.bind(tmpl);
@@ -51,10 +46,12 @@ describeComponent(require('lib'), function() {
 
     beforeEach(function() {
         uiGetSuggestionsEventSpy = spyOnEvent(this.$node, 'uiGetSuggestions');
+        uiSelectedSuggestion = spyOnEvent(this.$node, 'uiSelectedSuggestion');
     });
 
     afterEach(function() {
         uiGetSuggestionsEventSpy.reset();
+        uiSelectedSuggestion.reset();
     });
 
     describe('on keyup event', function() {
@@ -185,26 +182,6 @@ describeComponent(require('lib'), function() {
                 expect(that.component.select('suggestionsSelector').filter('.active')).toHaveLength(0);
             });
         });
-
-        describe('[ENTER] (keyCode XX)', function() {
-            beforeEach(function() {
-                that = this;
-                this.component.select('inputSelector')
-                    .val(query)
-                    .trigger('keydown');
-
-                this.component.trigger('dataSuggestions', [suggestions]);
-            });
-
-            describe('when no suggestion is selected', function() {
-                it('should not prevent default behaviour');
-            });
-
-            describe('when suggestion is selected', function() {
-                it('should prevent default behaviour');
-                it('should trigger uiSelectedSuggestion');
-            });
-        });
     });
 
     describe('[ARROW DOWN] (keyCode 40)', function() {
@@ -281,4 +258,49 @@ describeComponent(require('lib'), function() {
             expect(this.component.select('hintSelector')).toContainText(expectedHint);
         });
     });
+
+
+    describe('[ENTER] (keyCode 13)', function() {
+        var spyEvent, $input
+            ;
+        beforeEach(setInputValue(query));
+
+        beforeEach(function() {
+            $input = this.component.select('inputSelector');
+            spyEvent = spyOnEvent($input, 'keydown');
+            this.component.trigger('dataSuggestions', [suggestions]);
+        });
+
+        describe('when no suggestion is selected', function() {
+            beforeEach(function() {
+                $input.trigger($.Event('keydown', {keyCode: 13}));
+            });
+
+            it('should not prevent default behaviour and event bubbling', function() {
+                expect('keydown').not.toHaveBeenStoppedOn($input);
+                expect('keydown').not.toHaveBeenPreventedOn($input);
+            });
+        });
+
+        describe('when suggestion is selected', function() {
+            beforeEach(function() {
+                $input.trigger($.Event('keyup', {keyCode: 40}));
+            });
+
+            beforeEach(function() {
+                expect($input).toHaveValue(suggestions[0].name);
+                $input.trigger($.Event('keydown', {keyCode: 13}));
+            });
+
+            it('should prevent default behaviour', function() {
+                expect('keydown').toHaveBeenStoppedOn($input);
+                expect('keydown').toHaveBeenPreventedOn($input);
+            });
+
+            it('should trigger uiSelectedSuggestion', function() {
+                expect('uiSelectedSuggestion').toHaveBeenTriggeredOnAndWith(this.$node, [suggestions[0]]);
+            });
+        });
+    });
+
 });
