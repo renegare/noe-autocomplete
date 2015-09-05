@@ -394,5 +394,30 @@ describeComponent(require('lib'), function() {
                 expect('uiSelectedSuggestion').not.toHaveBeenTriggeredOn(this.$node);
             });
         });
-    })
+
+        describe('non text input after selecting a suggestion', function() {
+            beforeEach(function() {
+                this.component.trigger('dataSuggestions', [suggestions]);
+            });
+
+            beforeEach(setInputValue(suggestions[0].name));
+
+            beforeEach(function() { // select first section
+                $input.trigger($.Event('keyup', {keyCode: 40}));
+            });
+
+            beforeEach(function() {
+                expect(this.component.select('suggestionsSelector').filter('.active')).toHaveLength(1);
+                this.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 8}));
+            });
+
+            // beforeEach(function() {
+            //     this.component.select('inputSelector').trigger($.Event('keydown', {keyCode: 13}));
+            // });
+
+            it('should have nothing selected', function() {
+                expect(this.component.select('suggestionsSelector').filter('.active')).toHaveLength(0);
+            });
+        });
+    });
 });
