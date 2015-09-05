@@ -194,14 +194,11 @@ describeComponent(require('lib'), function() {
     describe('[ARROW DOWN] (keyCode 40)', function() {
         var that;
 
-        beforeEach(function() {
-            that = this;
-        });
-
         beforeEach(setInputValue(query));
 
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
+            that = this;
         });
 
         function triggerArrowDownKey() {
