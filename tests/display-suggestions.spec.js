@@ -395,7 +395,7 @@ describeComponent(require('lib'), function() {
             });
         });
 
-        describe('non text input after selecting a suggestion', function() {
+        xdescribe('non text input after selecting a suggestion', function() {
             beforeEach(function() {
                 this.component.trigger('dataSuggestions', [suggestions]);
             });
