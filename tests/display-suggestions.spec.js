@@ -376,6 +376,28 @@ describeComponent(require('lib'), function() {
         });
     });
 
+    xdescribe('suggestions list mouse interactions', function() {
+        beforeEach(setInputValue(query));
+
+        beforeEach(function() {
+            this.component.trigger('dataSuggestions', [suggestions]);
+        });
+
+        describe('hover', function() {
+            beforeEach(function() {
+                this.component.select('suggestionsSelector').eq(0).trigger('hover');
+            });
+
+            it('should highlight the suggestion', function() {
+                expect(this.component.select('suggestionsSelector').eq(0)).toHaveClass('active');
+            });
+        });
+
+        describe('click', function() {
+            it('should select the clicked suggestion');
+        });
+    });
+
     describe('edge cases', function() {
         describe('deselecting suggestion but hitting enter on matching free text', function() {
             beforeEach(function() {
