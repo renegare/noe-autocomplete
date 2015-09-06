@@ -110,6 +110,18 @@ describeComponent(require('lib'), function() {
             });
         });
 
+        describe('on blur', function() {
+            beforeEach(function(done) {
+                this.component.select('inputSelector').trigger('blur');
+                setTimeout(done, 10);
+            });
+
+            it('should hide deactivate suggestions', function() {
+                expect(this.component.select('listSelector')).not.toHaveClass('active');
+                expect(this.component.select('suggestionsSelector')).toHaveLength(0);
+            });
+        });
+
         describe('on uiClose', function() {
             beforeEach(function() {
                 this.$node.trigger('uiClose');
@@ -376,25 +388,36 @@ describeComponent(require('lib'), function() {
         });
     });
 
-    xdescribe('suggestions list mouse interactions', function() {
+    describe('suggestions list mouse interactions', function() {
         beforeEach(setInputValue(query));
 
         beforeEach(function() {
             this.component.trigger('dataSuggestions', [suggestions]);
         });
 
-        describe('hover', function() {
+        describe('mouseover', function() {
             beforeEach(function() {
-                this.component.select('suggestionsSelector').eq(0).trigger('hover');
+                this.component.select('suggestionsSelector').eq(0).trigger('mouseover');
             });
 
             it('should highlight the suggestion', function() {
                 expect(this.component.select('suggestionsSelector').eq(0)).toHaveClass('active');
             });
+
+            it('should not change the content of the hint and input', function() {
+                expect(this.component.select('inputSelector')).toHaveValue(query);
+                expect(this.component.select('hintSelecter')).not.toBeEmpty();
+            });
         });
 
         describe('click', function() {
-            it('should select the clicked suggestion');
+            beforeEach(function() {
+                this.component.select('suggestionsSelector').eq(0).click();
+            });
+
+            it('should select the clicked suggestion', function() {
+                expect('uiSelectedSuggestion').toHaveBeenTriggeredOnAndWith(this.$node, [suggestions[0]]);
+            });
         });
     });
 
