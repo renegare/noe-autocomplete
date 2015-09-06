@@ -109,6 +109,17 @@ describeComponent(require('lib'), function() {
                 expect(this.component.select('suggestionsSelector')).toHaveLength(0);
             });
         });
+
+        describe('on uiClose', function() {
+            beforeEach(function() {
+                this.$node.trigger('uiClose');
+            });
+
+            it('should hide deactivate suggestions', function() {
+                expect(this.component.select('listSelector')).not.toHaveClass('active');
+                expect(this.component.select('suggestionsSelector')).toHaveLength(0);
+            });
+        });
     });
 
     describe('when user deletes text', function() {
