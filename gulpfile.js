@@ -1,24 +1,25 @@
 var gulp = require('gulp-help')(require('gulp')),
     gutil = require('gulp-util'),
     webpack = require('webpack'),
+    webpackConfig = require('./webpack.conf'),
     glob = require('glob'),
-    path = require('path')
+    path = require('path'),
+    _ = require('lodash')
     ;
 
 
 gulp.task('default', ['help']);
 
-gulp.task('webpack:dist', function(done) {
-    webpack({
-        // configuration
-        resolve: {
-            root: __dirname,
-            alias: {
-                'noe-autocomplete': 'lib'
-            },
-            modulesDirectories: ['node_modules', 'public/bower']
-        },
+function webpackLogger(done) {
+    return function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString());
+        done();
+    };
+}
 
+gulp.task('webpack:dist', function(done) {
+    webpack(_.assign(webpackConfig, {
         plugins: [
             new webpack.ResolverPlugin(
                 new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin("package.json", ["main"])
@@ -26,7 +27,7 @@ gulp.task('webpack:dist', function(done) {
                 new webpack.ResolverPlugin(
                     new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin("bower.json", ["main"])
                 ),
-                    // new webpack.optimize.UglifyJsPlugin({minimize: true})
+                    new webpack.optimize.UglifyJsPlugin({minimize: true})
         ],
 
         entry: 'lib/index.js',
@@ -38,29 +39,13 @@ gulp.task('webpack:dist', function(done) {
         },
 
         loaders: [
-            { test: /\.mustache$/, loader: 'mustache'}
+            { test: /\.mustache$/, loader: 'mustache'},
         ]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-
-        gutil.log("[webpack]", stats.toString({
-            // output options
-        }));
-        done();
-    });
+    }), webpackLogger(done));
 });
 
 gulp.task('webpack:test', function(done) {
-    webpack({
-        // configuration
-        resolve: {
-            root: __dirname,
-            alias: {
-                'noe-autocomplete': 'lib'
-            },
-            modulesDirectories: ['node_modules', 'public/bower']
-        },
-
+    webpack(_.assign(webpackConfig, {
         plugins: [
             new webpack.ResolverPlugin(
                 new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin("package.json", ["main"])
@@ -78,20 +63,7 @@ gulp.task('webpack:test', function(done) {
             path: path.resolve(__dirname, 'tmp'),
             filename: "[name].spec.bundle.js"
         },
-
-        loaders: [
-            { test: /\.mustache$/, loader: 'mustache'}
-        ],
-
-        devtool: 'inline-source-map'
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-
-        gutil.log("[webpack]", stats.toString({
-            // output options
-        }));
-        done();
-    });
+    }), webpackLogger(done));
 });
 
 
