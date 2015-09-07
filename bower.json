@@ -1,6 +1,7 @@
 {
   "name": "noe-autocomplete",
   "version": "0.0.1",
+  "main": "public/dist/noe-autocomplete.bundle.js",
   "authors": [
     "renegare <mudi@renegare.com>"
   ],

@@ -2,7 +2,7 @@
   "name": "noe-autocomplete",
   "version": "0.0.1",
   "description": "simple autocomplete ui component",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "install": "bower i",
     "test": "testem -f testem.yml"
