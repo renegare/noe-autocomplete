@@ -22,7 +22,7 @@
     "hogan.js": "hogan#~3.0.2",
     "jasmine-core": "jasmine#~2.3.4",
     "jasmine-jquery": "~2.1.0",
-    "jquery": "~2.1.4",
+    "jquery": ">=1.11.3",
     "typeahead.js": "~0.11.1",
     "lodash": "~3.10.1"
   }

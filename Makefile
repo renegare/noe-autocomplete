@@ -1,6 +1,4 @@
-test:
-	nodemon -w . $(shell which testem) -- -f testem.yml
-
 setup:
-	-rm -rf ./node_modules && ./bower
+	-rm -rf ./node_modules \
+		./public/bower
 	npm i
