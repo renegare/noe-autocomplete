@@ -1,11 +1,11 @@
 {
   "name": "noe-autocomplete",
   "version": "0.0.1",
-  "main": "public/dist/noe-autocomplete.bundle.js",
+  "main": "lib/index.js",
   "authors": [
     "renegare <mudi@renegare.com>"
   ],
-  "license": "MIT",
+  "license": "ISC",
   "ignore": [
     "**/.*",
     "node_modules",
