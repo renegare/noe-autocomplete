@@ -4,7 +4,6 @@
   "description": "simple autocomplete ui component",
   "main": "lib/index.js",
   "scripts": {
-    "install": "bower i",
     "test": "testem ci",
     "demo": "json-server tests/fake-server.js"
   },
